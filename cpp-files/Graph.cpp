@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// Adds a given vertex to the verticies vector
 void Graph::insert_vertex(const Vertex& ver) {
     if (get_vertex_index(ver) == -1) {
         vertices.push_back(ver); //insert the vertex to the array of vertices
@@ -15,15 +16,34 @@ void Graph::insert_vertex(const Vertex& ver) {
     }
 }
 
+// Finds the index of a given vertex within the verticies vector
 int Graph::get_vertex_index(const Vertex& ver) {
     for(int i = 0; i < vertices.size(); i++) {
         if (vertices[i].getData() == ver.getData()) {
             return i;
         }
     }
+    // If no matching vertex is found 
     return -1;
 }
 
+// Returns the nested/inner index of a given edge in the edges vector 
+int Graph::find_edge(const Vertex& v1, const Vertex& v2){
+    int i1 = get_vertex_index(v1);
+    int i2 = get_vertex_index(v2);
+    if (i1 == -1 || i2 == -1) {
+        throw std::string("find_edge: incorrect vertices");
+    }
+    for(int i = 0; i < edges[i1].size(); i++){
+        if(edges[i1][i].dest==i2){
+            return i;
+        }
+    }
+    // If no matching edge is found
+    return -1;
+}
+
+// Adds an edge to a directed graph (and the edges vector)
 void Graph::add_edge(const Vertex& ver1, const Vertex& ver2, int cost, int distance) {
     int i1 = get_vertex_index(ver1);
     int i2 = get_vertex_index(ver2);
@@ -34,6 +54,34 @@ void Graph::add_edge(const Vertex& ver1, const Vertex& ver2, int cost, int dista
     edges[i1].push_back(v);
 }
 
+// Adds an edge to an undirected graph (and the edges vector)
+void Graph::add_undirected_edge(const Vertex& ver1, const Vertex& ver2, int cost, int distance) {
+    int i1 = get_vertex_index(ver1);
+    int i2 = get_vertex_index(ver2);
+    if (i1 == -1 || i2 == -1) {
+        throw std::string("Add_edge: incorrect vertices");
+    }
+    int ei1 = find_edge(ver1,ver2);
+    int ei2 = find_edge(ver2,ver1);
+    // If the edges have not been created yet
+    if(ei1==-1){
+        Edge v(i1, i2, cost, distance);
+        Edge v2(i2, i1, cost, distance);
+        edges[i1].push_back(v);
+        if (i1 != i2) {
+            edges[i2].push_back(v2);
+        }
+    }
+    // If the edges have been created but the cost of the new edge is lower
+    else{
+        if(cost < edges[i1][ei1].cost){
+            edges[i1][ei1].cost=cost;
+            edges[i2][ei2].cost=cost;
+        }
+    }
+}
+
+// Prints out each vertex and its corresponding connected vertices, distance, and cost
 void Graph::print() const {
     for (int i = 0; i < vertices.size(); i++) {
         cout << "{ " << vertices[i].getData() << ": ";
@@ -46,6 +94,7 @@ void Graph::print() const {
     }
 }
 
+// The below functions are commented out for my own sanity.
 /*
 void Graph::DFS(Vertex& ver) {
     clean_visited();
