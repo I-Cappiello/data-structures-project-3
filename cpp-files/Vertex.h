@@ -17,8 +17,8 @@ public:
 
 private:
     // Variables
-    string data;
-    bool visited;
+    string data;    // Airport Code
+    bool visited;   // Marks whether the node has been visited
 };
 
 #endif
