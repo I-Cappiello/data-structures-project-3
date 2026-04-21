@@ -1,0 +1,34 @@
+#ifndef GRAPH_H
+#define GRAPH_H
+#include "Vertex.h"
+#include "Edge.h"
+#include <vector>
+using namespace std;
+
+class Graph {
+public:
+    const static int INT_MAX = 10000;
+    Graph() {}
+
+    void insert_vertex(const Vertex& ver);
+    void add_edge(const Vertex& ver1, const Vertex& ver2, int cost, int distance); //connect ver1 with ver2
+
+    void print() const;
+
+    //void DFS(Vertex& ver);
+    //void BFS(Vertex& ver);
+
+    //int shortest_path(const Vertex& src, const Vertex& dest);
+    //int dijkstra_shortest_path(const Vertex& src, const Vertex& dest);
+
+private:
+    vector<Vertex> vertices; //nodes
+    vector<vector<Edge>> edges; //connections
+
+    void clean_visited();
+
+    void DFS_helper(Vertex& ver);
+    int get_vertex_index(const Vertex& ver);
+};
+
+#endif
