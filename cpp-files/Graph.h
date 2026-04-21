@@ -7,13 +7,16 @@ using namespace std;
 
 class Graph {
 public:
-    const static int INT_MAX = 10000;
+    // Meant for the algorithms, a stand in for infinity (no price should be this high, I hope. If it is, just add another 0.)
+    const static int INT_MAX = 100000;
     Graph() {}
 
-    void insert_vertex(const Vertex& ver);
+    void insert_vertex(const Vertex& ver); // Adds vertex to verticies vector
     void add_edge(const Vertex& ver1, const Vertex& ver2, int cost, int distance); //connect ver1 with ver2
-
-    void print() const;
+    
+    void add_undirected_edge(const Vertex& ver1, const Vertex& ver2, int cost, int distance); //connects ver1 and ver2
+    
+    void print() const; //prints out all vertices and connected vertices (and their weights)
 
     //void DFS(Vertex& ver);
     //void BFS(Vertex& ver);
@@ -24,11 +27,14 @@ public:
 private:
     vector<Vertex> vertices; //nodes
     vector<vector<Edge>> edges; //connections
-
-    void clean_visited();
-
-    void DFS_helper(Vertex& ver);
-    int get_vertex_index(const Vertex& ver);
+    
+    // Helper Functions
+    void clean_visited(); // Sets all vertex's visited to false
+    void DFS_helper(Vertex& ver); // Helps with DFS
+    int get_vertex_index(const Vertex& ver); // Grabs the index of a given vertex
+    int get_edge_index();
+    
+    int find_edge(const Vertex& v1, const Vertex& v2);
 };
 
 #endif
