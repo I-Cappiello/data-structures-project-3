@@ -53,6 +53,7 @@ vector<vector<string>> readCSV(const string& filename) {
 int main() {
     // Stores csv data as well as its size
     auto data = readCSV("airports.txt");
+    // Cancels program if data is empty
     if(data.empty()){
         cout << "No data loaded.\n";
         return 0;
@@ -60,26 +61,22 @@ int main() {
     int numRows = data.size();
     int numCol = data[0].size();
     Graph g;
+    Graph g_u;
     
-    /*
-    for (const auto& row : data) {
-        for (const auto& cell : row) {
-            cout << cell << "\t";
-        }
-        cout << endl;
-    }
-    */
-    
+    // Enters data into directed and undirected graphs g and g_u
     for(int i = 1; i < numRows;i++){
         Vertex v1(data[i][0]);
         Vertex v2(data[i][1]);
         g.insert_vertex(v1);
+        g_u.insert_vertex(v1);
         g.insert_vertex(v2);
+        g_u.insert_vertex(v2);
         g.add_edge(v1,v2,stoi(data[i][2]),stoi(data[i][3]));
+        g_u.add_undirected_edge(v1,v2,stoi(data[i][2]),stoi(data[i][3]));
     }
     
-    g.print();
+    // Prints directed graph data
+    g_u.print();
     
-
     return 0;
 }
