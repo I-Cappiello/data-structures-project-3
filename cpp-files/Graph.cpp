@@ -4,8 +4,11 @@
 
 #include <unistd.h> 
 #include <iostream>
+#include <algorithm>
+
 
 using namespace std;
+const int Graph::INT_MAX;
 
 // Adds a given vertex to the verticies vector
 void Graph::insert_vertex(const Vertex& ver) {
