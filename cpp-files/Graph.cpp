@@ -10,6 +10,26 @@
 using namespace std;
 const int Graph::INT_MAX;
 
+class UnionFind {
+    vector<int> parent;
+public:
+    UnionFind(int n) : parent(n) {
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+    
+    int find(int x) {
+        return parent[x] == x ? x : (parent[x] = find(parent[x]));
+    }
+    
+    bool unite(int x, int y) {
+        x = find(x); y = find(y);
+        if (x == y) return false;  // Already connected
+        parent[x] = y;
+        return true;
+    }
+};
+
+
 // Adds a given vertex to the verticies vector
 void Graph::insert_vertex(const Vertex& ver) {
     if (get_vertex_index(ver) == -1) {
@@ -356,6 +376,178 @@ for (int i = 0; i < airport_data.size() - 1; i++) {
              << ", outbound: " << ac.outbound << ")" << endl;
     }
 }
+
+void Graph::prim_mst() {
+    int n = vertices.size();
+    
+    if (n == 0) {
+        cout << "Graph is empty. Cannot generate MST.\n";
+        return;
+    }
+    
+    vector<bool> in_mst(n, false);
+    
+    struct MSTEdge {
+        int v1;
+        int v2;
+        int cost;
+    };
+    vector<MSTEdge> mst_edges;
+    
+    in_mst[0] = true;
+    int vertices_in_mst = 1;
+    int total_cost = 0;
+    
+    while (vertices_in_mst < n) {
+        int min_cost = -1;
+        int best_from = -1;
+        int best_to = -1;
+        
+        for (int i = 0; i < n; i++) {
+            if (!in_mst[i]) continue;
+            
+            for (int j = 0; j < edges[i].size(); j++) {
+                int dest = edges[i][j].dest;
+                int cost = edges[i][j].cost;
+                
+                if (!in_mst[dest]) {
+                    if (min_cost == -1 || cost < min_cost) {
+                        min_cost = cost;
+                        best_from = i;
+                        best_to = dest;
+                    }
+                }
+            }
+        }
+        
+        if (min_cost == -1) {
+            cout << "Graph is disconnected. MST cannot be formed.\n";
+            return;
+        }
+        
+        in_mst[best_to] = true;
+        vertices_in_mst++;
+        total_cost += min_cost;
+        
+        MSTEdge edge;
+        edge.v1 = best_from;
+        edge.v2 = best_to;
+        edge.cost = min_cost;
+        mst_edges.push_back(edge);
+    }
+   cout << "\nMinimal Spanning Tree:\n";
+cout << "Edge              Weight\n";
+
+for (int i = 0; i < mst_edges.size(); i++) {
+    string edge_str = vertices[mst_edges[i].v1].getData() + " - " + 
+                     vertices[mst_edges[i].v2].getData();
+    
+    // Pad to 18 characters
+    while (edge_str.length() < 18) {
+        edge_str += " ";
+    }
+    
+    cout << edge_str << mst_edges[i].cost << "\n";
+}
+
+cout << "\nTotal Cost of MST: " << total_cost << "\n\n";
+}
+
+void Graph::check_connectivity() {
+    int n = vertices.size();
+    if (n == 0) return;
+    
+    vector<bool> visited(n, false);
+    vector<int> queue;
+    queue.push_back(0);
+    visited[0] = true;
+    int reachable = 1;
+    
+    int front = 0;
+    while (front < queue.size()) {
+        int current = queue[front++];
+        for (int i = 0; i < edges[current].size(); i++) {
+            int neighbor = edges[current][i].dest;
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                queue.push_back(neighbor);
+                reachable++;
+            }
+        }
+    }
+    
+    cout << "\nCONNECTIVITY CHECK! (for MST output to actually work)\n";
+    cout << "Total: " << n << " | Reachable: " << reachable << "\n";
+    
+    if (reachable == n) {
+        cout << "CONNECTED\n\n";
+    } else {
+        cout << "DISCONNECTED - Unreachable airports:\n";
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) cout << "  - " << vertices[i].getData() << "\n";
+        }
+        cout << "\n";
+    }
+}
+
+void Graph::Kruskal_MST(){
+    int n = vertices.size();
+    if (n == 0){
+        cout <<"graph is empty. \n";
+        return;
+    }
+    
+    vector<Edge> all_edges;
+    
+    for (int i = 0; i<n; i++){
+        for (int j = 0; j < edges[i].size(); j++){
+            if (i < edges[i][j].dest){
+                all_edges.push_back(edges[i][j]);
+            }
+        }
+    }
+    
+for (int i = 0; i < all_edges.size() - 1; i++){
+        for (int j = 0; j < all_edges.size() - i - 1; j++){
+            if (all_edges[j+1] < all_edges[j]) {
+                Edge temp = all_edges[j];
+                all_edges[j] = all_edges[j+1];
+                all_edges[j+1] = temp;
+            }
+        }
+    }
+
+    
+    
+    UnionFind uf(n);
+    vector<Edge> mst_edges;
+    int total_cost = 0;
+    
+    for (int i = 0; i < all_edges.size(); i++){
+        Edge edge = all_edges[i];
+    
+            if (uf.unite(edge.src, edge.dest)) {
+            mst_edges.push_back(edge);
+            total_cost += edge.cost;
+        }
+    }
+    
+    cout <<"\nMinimal Spanning Tree:\n";
+    cout << "Edge     Weight\n";
+    
+    for (int i = 0; i < mst_edges.size(); i++) {
+        string edge_str = vertices[mst_edges[i].src].getData() + " - " + vertices[mst_edges[i].dest].getData();
+        
+        while(edge_str.length() < 18){
+            edge_str += " ";
+        }
+        cout << edge_str << mst_edges[i].cost << "\n";
+    }
+    
+    cout << "\nTotal Cost of MST: " << total_cost << "\n\n";
+    
+}
+
 
 // The below functions are commented out for my own sanity.
 /*
