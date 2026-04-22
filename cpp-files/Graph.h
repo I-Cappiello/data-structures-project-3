@@ -24,6 +24,15 @@ public:
 
     void shortestPathWithStops(int src, int dest, int maxStops);
 
+     void display_flight_connections();
+    
+    void prim_mst();
+    
+    void check_connectivity();
+    
+    void Kruskal_MST();
+
+
     //void DFS(Vertex& ver);
     //void BFS(Vertex& ver);
 
