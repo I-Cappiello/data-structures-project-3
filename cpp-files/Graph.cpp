@@ -173,6 +173,7 @@ void Graph::shortestPathsToState(int src, string state) {
     int n = edges.size();
 
     vector<int> dist(n, INT_MAX);
+    vector<int> totalCost(n, 0); // Need this for the table output
     vector<int> parent(n, -1);
     vector<bool> visited(n, false);
 
@@ -194,9 +195,9 @@ void Graph::shortestPathsToState(int src, string state) {
 
         for (auto &edge : edges[u]) {
             int v = edge.dest;
-
             if (!visited[v] && dist[u] + edge.distance < dist[v]) {
                 dist[v] = dist[u] + edge.distance;
+                totalCost[v] = totalCost[u] + edge.cost; // Accumulate cost
                 parent[v] = u;
             }
         }
@@ -204,7 +205,12 @@ void Graph::shortestPathsToState(int src, string state) {
 
     bool found = false;
 
+    // Header exactly like the screenshot
+    cout << "\nShortest paths from " << vertices[src].getData() << " to " << state << " state airports are:\n" << endl;
+    cout << "Path\t\t\tLength\t\tCost" << endl;
+
     for (int i = 0; i < n; i++) {
+        // Use your isInState requirement to filter the list
         if (isInState(i, state) && dist[i] != INT_MAX) {
             found = true;
 
@@ -212,16 +218,21 @@ void Graph::shortestPathsToState(int src, string state) {
             for (int v = i; v != -1; v = parent[v]) {
                 path.push_back(v);
             }
-
             reverse(path.begin(), path.end());
 
-            cout << "Path to " << i << ": ";
+            // Print the Path (e.g., ATL->JFK->MCO)
+            string pathString = "";
             for (int j = 0; j < path.size(); j++) {
-                cout << path[j];
-                if (j != path.size() - 1) cout << " -> ";
+                pathString += vertices[path[j]].getData();
+                if (j != path.size() - 1) pathString += "->";
             }
 
-            cout << " | Distance: " << dist[i] << endl;
+            // Using \t (tabs) for basic alignment to match the sample look
+            cout << pathString;
+            if (pathString.length() < 16) cout << "\t\t"; // Extra tab for short paths
+            else cout << "\t";
+            
+            cout << dist[i] << "\t\t" << totalCost[i] << endl;
         }
     }
 
