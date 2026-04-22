@@ -1,11 +1,7 @@
 #include "Graph.h"
-// #include "MinHeap.h"
-// #include "MinHeap.cpp"
-
 #include <unistd.h> 
 #include <iostream>
 #include <algorithm>
-
 
 using namespace std;
 const int Graph::INT_MAX;
@@ -29,8 +25,7 @@ public:
     }
 };
 
-
-// Adds a given vertex to the verticies vector
+// Adds a given vertex to the esies vector
 void Graph::insert_vertex(const Vertex& ver) {
     if (get_vertex_index(ver) == -1) {
         vertices.push_back(ver); //insert the vertex to the array of vertices
@@ -117,21 +112,53 @@ void Graph::print() const {
     }
 }
 
-bool Graph::isInState(int index, string state) {
-    // Get the data string from the vertex (e.g., "Miami, FL")
-    string airportData = vertices[index].getData();
-    
-    // Check if the state abbreviation (like "FL") is found in that string
-    if (airportData.find(state) != string::npos) {
+// Finds the index a certain state is located at
+int Graph::find_state_index(vector<string> states, string state){
+    for(int j = 0; j < states.size();j++){
+        if(states[j]==state){
+            return j;
+        }
+    }
+    return -1;
+}
+
+// Finds the index a certain airport is located
+int Graph::find_airport(vector<vector<string>> airports, string airport, int sindex){
+    for(int j = 0; j < airports[sindex].size();j++){
+        if(airports[sindex][j]==airport){
+            return j;
+        }
+    }
+    return -1;
+}
+
+// Checks if a vertex is within a states (i is the index of a vertex in verticies)
+bool Graph::isInState(int i, string state, vector<string> states, vector<vector<string>> airports){
+    int si = find_state_index(states, state);
+    string airportData = vertices[i].getData();
+    if(si==-1){
+        return false;
+    }
+    if(find_airport(airports,airportData,si)!=-1){
         return true;
     }
     return false;
 }
-void Graph::shortestPath(int src, int dest) {
-    int n = edges.size();
+//prints out the shortest path between origin and destination airports, with distance and cost
+void Graph::shortestPath(string srcCode, string destCode) {
+    // 1. Convert the strings to indices using your helper function
+    int src = get_vertex_index(Vertex(srcCode));
+    int dest = get_vertex_index(Vertex(destCode));
 
+    // 2. Make sure the airports actually exist in your graph
+    if (src == -1 || dest == -1) {
+        cout << "Error: One or both airport codes (" << srcCode << ", " << destCode << ") not found." << endl;
+        return;
+    }
+
+    int n = edges.size();
     vector<int> dist(n, INT_MAX);
-    vector<int> totalCost(n, 0); // Need this for the final output
+    vector<int> totalCost(n, 0); 
     vector<int> parent(n, -1);
     vector<bool> visited(n, false);
 
@@ -157,7 +184,7 @@ void Graph::shortestPath(int src, int dest) {
 
             if (!visited[v] && dist[u] + weight < dist[v]) {
                 dist[v] = dist[u] + weight;
-                totalCost[v] = totalCost[u] + edge.cost; // Track cost alongside distance
+                totalCost[v] = totalCost[u] + edge.cost; 
                 parent[v] = u;
             }
         }
@@ -168,37 +195,44 @@ void Graph::shortestPath(int src, int dest) {
          << vertices[dest].getData() << ": ";
 
     if (dist[dest] == INT_MAX) {
-        cout << "Shortest route from " << vertices[src].getData() << " to " 
-             << vertices[dest].getData() << ": None" << endl;
-    return;
-}
+        cout << "None" << endl;
+        return;
+    }
 
-    // Reconstruct the path
     vector<int> path;
     for (int v = dest; v != -1; v = parent[v]) {
         path.push_back(v);
     }
     reverse(path.begin(), path.end());
 
-    // Print the Path (A -> B -> C)
     for (int i = 0; i < path.size(); i++) {
         cout << vertices[path[i]].getData();
         if (i != path.size() - 1) cout << " -> ";
     }
 
-    // Print the final stats
     cout << ". The length is " << dist[dest] << ". The cost is " << totalCost[dest] << "." << endl;
 }
-void Graph::shortestPathsToState(int src, string state) {
-    int n = edges.size();
 
+//prints out the shortest paths from one airport to all airports in a specified state, alongside cost and distance
+void Graph::shortestPathsToState(string srcCode, string state, vector<string> states, vector<vector<string>> airports) {
+    // 1. Convert the starting airport code to an index
+    int src = get_vertex_index(Vertex(srcCode));
+
+    // 2. Validate that the starting airport exists
+    if (src == -1) {
+        cout << "Error: Starting airport code (" << srcCode << ") not found." << endl;
+        return;
+    }
+
+    int n = edges.size();
     vector<int> dist(n, INT_MAX);
-    vector<int> totalCost(n, 0); // Need this for the table output
+    vector<int> totalCost(n, 0); 
     vector<int> parent(n, -1);
     vector<bool> visited(n, false);
 
     dist[src] = 0;
 
+    // Dijkstra's Algorithm
     for (int i = 0; i < n - 1; i++) {
         int u = -1;
         int minDist = INT_MAX;
@@ -217,7 +251,7 @@ void Graph::shortestPathsToState(int src, string state) {
             int v = edge.dest;
             if (!visited[v] && dist[u] + edge.distance < dist[v]) {
                 dist[v] = dist[u] + edge.distance;
-                totalCost[v] = totalCost[u] + edge.cost; // Accumulate cost
+                totalCost[v] = totalCost[u] + edge.cost; 
                 parent[v] = u;
             }
         }
@@ -225,31 +259,30 @@ void Graph::shortestPathsToState(int src, string state) {
 
     bool found = false;
 
-    // Header exactly like the screenshot
+    // Header matches the sample output exactly
     cout << "\nShortest paths from " << vertices[src].getData() << " to " << state << " state airports are:\n" << endl;
     cout << "Path\t\t\tLength\t\tCost" << endl;
 
     for (int i = 0; i < n; i++) {
-        // Use your isInState requirement to filter the list
-        if (isInState(i, state) && dist[i] != INT_MAX) {
+        // Filter by state using your isInState requirement
+        if (isInState(i, state, states, airports) && dist[i] != INT_MAX) {
             found = true;
-
+        
             vector<int> path;
             for (int v = i; v != -1; v = parent[v]) {
                 path.push_back(v);
             }
             reverse(path.begin(), path.end());
 
-            // Print the Path (e.g., ATL->JFK->MCO)
             string pathString = "";
             for (int j = 0; j < path.size(); j++) {
                 pathString += vertices[path[j]].getData();
                 if (j != path.size() - 1) pathString += "->";
             }
 
-            // Using \t (tabs) for basic alignment to match the sample look
+            // Aligned output
             cout << pathString;
-            if (pathString.length() < 16) cout << "\t\t"; // Extra tab for short paths
+            if (pathString.length() < 16) cout << "\t\t"; 
             else cout << "\t";
             
             cout << dist[i] << "\t\t" << totalCost[i] << endl;
@@ -261,7 +294,18 @@ void Graph::shortestPathsToState(int src, string state) {
     }
 }
 
-void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
+//prints out the shortest Path between an origin and destination airport, with max stops as a constraint
+void Graph::shortestPathWithStops(string srcCode, string destCode, int maxStops) {
+    // 1. Convert the airport codes to indices
+    int src = get_vertex_index(Vertex(srcCode));
+    int dest = get_vertex_index(Vertex(destCode));
+
+    // 2. Validate the input
+    if (src == -1 || dest == -1) {
+        cout << "Error: One or both airport codes (" << srcCode << ", " << destCode << ") not found." << endl;
+        return;
+    }
+
     int n = edges.size();
     // dist[airport][stops]
     vector<vector<int>> dist(n, vector<int>(maxStops + 2, INT_MAX));
@@ -273,6 +317,7 @@ void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
     dist[src][0] = 0;
     totalCost[src][0] = 0;
 
+    // Dynamic Programming approach based on stops
     for (int stops = 0; stops <= maxStops; stops++) {
         for (int u = 0; u < n; u++) {
             if (dist[u][stops] == INT_MAX) continue;
@@ -295,6 +340,7 @@ void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
     int finalCost = 0;
     int bestStopCount = -1;
 
+    // Find the best distance among all valid stop counts (up to maxStops)
     for (int i = 0; i <= maxStops + 1; i++) {
         if (dist[dest][i] < bestDist) {
             bestDist = dist[dest][i];
@@ -317,7 +363,6 @@ void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
         }
         reverse(path.begin(), path.end());
 
-        // EXACT WORDING FROM TASK 4
         cout << "Shortest route from " << vertices[src].getData() << " to " 
              << vertices[dest].getData() << " with " << maxStops << " stops: ";
         
@@ -330,7 +375,6 @@ void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
     }
 }
 
-//for part 5
 void Graph::display_flight_connections() {
     struct AirportConnections {
         string name;
@@ -507,7 +551,7 @@ void Graph::Kruskal_MST(){
         }
     }
     
-for (int i = 0; i < all_edges.size() - 1; i++){
+    for (int i = 0; i < all_edges.size() - 1; i++){
         for (int j = 0; j < all_edges.size() - i - 1; j++){
             if (all_edges[j+1] < all_edges[j]) {
                 Edge temp = all_edges[j];
@@ -547,166 +591,3 @@ for (int i = 0; i < all_edges.size() - 1; i++){
     cout << "\nTotal Cost of MST: " << total_cost << "\n\n";
     
 }
-
-
-// The below functions are commented out for my own sanity.
-/*
-void Graph::DFS(Vertex& ver) {
-    clean_visited();
-    DFS_helper(ver);
-    clean_visited();
-}
-
-void print_queue(VertexQueue q) {
-  while (!q.empty())
-  {
-    cout << q.front().getData() << " ";
-    q.pop();
-  }
-  cout << endl;
-}
-
-void Graph::BFS(Vertex& ver) {
-    clean_visited();
-
-    int i = get_vertex_index(ver);
-    if (i == -1) {
-        throw string("BFS: Vertex is not in the graph");
-    }
-    IntQueue q;
-    q.push(i);
-    vertices[i].setVisited(true);
-
-    while (!q.empty()) {
-        int i = q.front();
-        cout << vertices[i].getData() << ' ';
-        for(int j = 0; j < edges[i].size(); j++) {
-            int adjacent_ver = edges[i][j].dest;
-            if (vertices[adjacent_ver].getVisited() == false) {
-                vertices[adjacent_ver].setVisited(true);
-                q.push(adjacent_ver);
-            }
-        }
-        q.pop();
-    }
-
-    clean_visited();
-}
-
-void Graph::clean_visited() {
-    for(Vertex& v : vertices) {
-        v.setVisited(false);
-    }
-}
-
-
-void Graph::DFS_helper(Vertex& ver) {
-    int i = get_vertex_index(ver);
-    if (i == -1) {
-        throw string("DFS: Vertex is not in the graph");
-    }
-    vertices[i].setVisited(true); //visit the current vertex
-    cout << vertices[i].getData() << ' '; //print the data of the current vertex
-    for(int j = 0; j < edges[i].size(); j++) {
-        Vertex adjacent_ver = vertices[edges[i][j].dest];
-        if (adjacent_ver.getVisited() == false) {
-            DFS_helper(adjacent_ver);
-        }
-    }
-}
-
-int Graph::shortest_path(const Vertex& src, const Vertex& dest) {
-    int i_src = get_vertex_index(src);
-    int i_dest = get_vertex_index(dest);
-
-    if (i_src == -1 || i_dest == -1) {
-        throw string("Shortest path: incorrect vertices"); 
-    }
-
-    clean_visited();
-    vector<int> distances(vertices.size()); //represents the distances from source to all other vertices
-
-    //set initial distances
-    for(int i = 0; i < distances.size(); i++) {
-        distances[i] = (i == i_src) ? 0 : INT_MAX;
-    }
-
-    IntQueue q;
-    q.push(i_src);
-
-    while (!q.empty()) {
-        int i = q.front();
-        //check the neighbours of the current node
-        for(int j = 0; j < edges[i].size(); j++) {
-            int i_adjacent_ver = edges[i][j].dest;
-            if (vertices[i_adjacent_ver].getVisited() == false) {
-                q.push(i_adjacent_ver);
-                int dist_from_source = distances[i] + edges[i][j].distance;
-                if (dist_from_source < distances[i_adjacent_ver]) {
-                    distances[i_adjacent_ver] = dist_from_source;
-                    //test how the distances change
-                    for(int i : distances) {
-                        cout << i << ' ';
-                    }
-                    cout << '\n';
-                }
-            }
-        }
-        vertices[i].setVisited(true);
-        q.pop();
-    }
-
-    clean_visited();
-
-    return distances[i_dest];
-}
-
-int Graph::dijkstra_shortest_path(const Vertex& src, const Vertex& dest) {
-    int i_src = get_vertex_index(src);
-    int i_dest = get_vertex_index(dest);
-
-    if (i_src == -1 || i_dest == -1) {
-        throw string("Shortest path: incorrect vertices"); 
-    }
-
-    clean_visited();
-    vector<int> distances(vertices.size()); //represents the distances from source to all other vertices
-
-    //set initial distances
-    for(int i = 0; i < distances.size(); i++) {
-        distances[i] = (i == i_src) ? 0 : INT_MAX;
-    }
-
-    MinHeap<Edge> heap;
-    int vertices_visited = 0;
-    int cur_ver = i_src;
-
-    while (vertices_visited < vertices.size()) {
-        int i = cur_ver;
-        //check the neighbours of the current node
-        for(int j = 0; j < edges[i].size(); j++) {
-            int i_adjacent_ver = edges[i][j].dest;
-            if (vertices[i_adjacent_ver].getVisited() == false) {
-                heap.insert(edges[i][j]);
-                int dist_from_source = distances[i] + edges[i][j].distance;
-                if (dist_from_source < distances[i_adjacent_ver]) {
-                    distances[i_adjacent_ver] = dist_from_source;
-                    //test how the distances change
-                    for(int i : distances) {
-                        cout << i << ' ';
-                    }
-                    cout << '\n';
-                }
-            }
-        }
-        Edge e = heap.delete_min();
-        cur_ver = e.dest;        
-        vertices[i].setVisited(true);
-        vertices_visited++;
-    }
-
-    clean_visited();
-
-    return distances[i_dest];
-}
-*/
