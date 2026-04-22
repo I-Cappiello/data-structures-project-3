@@ -77,6 +77,9 @@ int main() {
     
     // Prints directed graph data
     g_u.print();
+    g_u.shortestPath();
+    g_u.shortestPathsToState();
+    g_u.shortestPathWithStops();
     
     return 0;
 }
