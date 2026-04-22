@@ -94,6 +94,207 @@ void Graph::print() const {
     }
 }
 
+bool Graph::isInState(int index, string state) {
+    // Get the data string from the vertex (e.g., "Miami, FL")
+    string airportData = vertices[index].getData();
+    
+    // Check if the state abbreviation (like "FL") is found in that string
+    if (airportData.find(state) != string::npos) {
+        return true;
+    }
+    return false;
+}
+void Graph::shortestPath(int src, int dest) {
+    int n = edges.size();
+
+    vector<int> dist(n, INT_MAX);
+    vector<int> totalCost(n, 0); // Need this for the final output
+    vector<int> parent(n, -1);
+    vector<bool> visited(n, false);
+
+    dist[src] = 0;
+
+    for (int i = 0; i < n - 1; i++) {
+        int u = -1;
+        int minDist = INT_MAX;
+
+        for (int j = 0; j < n; j++) {
+            if (!visited[j] && dist[j] < minDist) {
+                minDist = dist[j];
+                u = j;
+            }
+        }
+
+        if (u == -1) break;
+        visited[u] = true;
+
+        for (auto &edge : edges[u]) {
+            int v = edge.dest;
+            int weight = edge.distance;
+
+            if (!visited[v] && dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                totalCost[v] = totalCost[u] + edge.cost; // Track cost alongside distance
+                parent[v] = u;
+            }
+        }
+    }
+
+    // Header part of the output
+    cout << "Shortest route from " << vertices[src].getData() << " to " 
+         << vertices[dest].getData() << ": ";
+
+    if (dist[dest] == INT_MAX) {
+        cout << "Shortest route from " << vertices[src].getData() << " to " 
+             << vertices[dest].getData() << ": None" << endl;
+    return;
+}
+
+    // Reconstruct the path
+    vector<int> path;
+    for (int v = dest; v != -1; v = parent[v]) {
+        path.push_back(v);
+    }
+    reverse(path.begin(), path.end());
+
+    // Print the Path (A -> B -> C)
+    for (int i = 0; i < path.size(); i++) {
+        cout << vertices[path[i]].getData();
+        if (i != path.size() - 1) cout << " -> ";
+    }
+
+    // Print the final stats
+    cout << ". The length is " << dist[dest] << ". The cost is " << totalCost[dest] << "." << endl;
+}
+void Graph::shortestPathsToState(int src, string state) {
+    int n = edges.size();
+
+    vector<int> dist(n, INT_MAX);
+    vector<int> parent(n, -1);
+    vector<bool> visited(n, false);
+
+    dist[src] = 0;
+
+    for (int i = 0; i < n - 1; i++) {
+        int u = -1;
+        int minDist = INT_MAX;
+
+        for (int j = 0; j < n; j++) {
+            if (!visited[j] && dist[j] < minDist) {
+                minDist = dist[j];
+                u = j;
+            }
+        }
+
+        if (u == -1) break;
+        visited[u] = true;
+
+        for (auto &edge : edges[u]) {
+            int v = edge.dest;
+
+            if (!visited[v] && dist[u] + edge.distance < dist[v]) {
+                dist[v] = dist[u] + edge.distance;
+                parent[v] = u;
+            }
+        }
+    }
+
+    bool found = false;
+
+    for (int i = 0; i < n; i++) {
+        if (isInState(i, state) && dist[i] != INT_MAX) {
+            found = true;
+
+            vector<int> path;
+            for (int v = i; v != -1; v = parent[v]) {
+                path.push_back(v);
+            }
+
+            reverse(path.begin(), path.end());
+
+            cout << "Path to " << i << ": ";
+            for (int j = 0; j < path.size(); j++) {
+                cout << path[j];
+                if (j != path.size() - 1) cout << " -> ";
+            }
+
+            cout << " | Distance: " << dist[i] << endl;
+        }
+    }
+
+    if (!found) {
+        cout << "No paths to state " << state << endl;
+    }
+}
+
+void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
+    int n = edges.size();
+    // dist[airport][stops]
+    vector<vector<int>> dist(n, vector<int>(maxStops + 2, INT_MAX));
+    // cost[airport][stops]
+    vector<vector<int>> totalCost(n, vector<int>(maxStops + 2, INT_MAX));
+    // parent[airport][stops]
+    vector<vector<int>> parent(n, vector<int>(maxStops + 2, -1));
+
+    dist[src][0] = 0;
+    totalCost[src][0] = 0;
+
+    for (int stops = 0; stops <= maxStops; stops++) {
+        for (int u = 0; u < n; u++) {
+            if (dist[u][stops] == INT_MAX) continue;
+
+            for (auto &edge : edges[u]) {
+                int v = edge.dest;
+                int newDist = dist[u][stops] + edge.distance;
+                int newCost = totalCost[u][stops] + edge.cost;
+
+                if (newDist < dist[v][stops + 1]) {
+                    dist[v][stops + 1] = newDist;
+                    totalCost[v][stops + 1] = newCost;
+                    parent[v][stops + 1] = u;
+                }
+            }
+        }
+    }
+
+    int bestDist = INT_MAX;
+    int finalCost = 0;
+    int bestStopCount = -1;
+
+    for (int i = 0; i <= maxStops + 1; i++) {
+        if (dist[dest][i] < bestDist) {
+            bestDist = dist[dest][i];
+            finalCost = totalCost[dest][i];
+            bestStopCount = i;
+        }
+    }
+
+    if (bestDist == INT_MAX) {
+        cout << "Shortest route from " << vertices[src].getData() << " to " 
+             << vertices[dest].getData() << " with " << maxStops << " stops: None" << endl;
+    } else {
+        vector<int> path;
+        int curr = dest;
+        int currStop = bestStopCount;
+        while (curr != -1) {
+            path.push_back(curr);
+            curr = parent[curr][currStop];
+            currStop--;
+        }
+        reverse(path.begin(), path.end());
+
+        // EXACT WORDING FROM TASK 4
+        cout << "Shortest route from " << vertices[src].getData() << " to " 
+             << vertices[dest].getData() << " with " << maxStops << " stops: ";
+        
+        for (int i = 0; i < path.size(); i++) {
+            cout << vertices[path[i]].getData();
+            if (i != path.size() - 1) cout << " -> ";
+        }
+        
+        cout << ". The length is " << bestDist << ". The cost is " << finalCost << "." << endl;
+    }
+}
 // The below functions are commented out for my own sanity.
 /*
 void Graph::DFS(Vertex& ver) {
