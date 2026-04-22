@@ -18,6 +18,12 @@ public:
     
     void print() const; //prints out all vertices and connected vertices (and their weights)
 
+    void shortestPath(int src, int dest);
+
+    void shortestPathsToState(int src, string state);
+
+    void shortestPathWithStops(int src, int dest, int maxStops);
+
     //void DFS(Vertex& ver);
     //void BFS(Vertex& ver);
 
@@ -33,8 +39,8 @@ private:
     void DFS_helper(Vertex& ver); // Helps with DFS
     int get_vertex_index(const Vertex& ver); // Grabs the index of a given vertex
     int get_edge_index();
-    
     int find_edge(const Vertex& v1, const Vertex& v2);
+    bool isInState(int index, string state);
 };
 
 #endif
