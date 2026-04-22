@@ -148,7 +148,7 @@ int main() {
     }
     
     // Prints graph data
-    //g.pritn()
+    //g.print()
     //g_u.print();
     
     // Finds the shortest path between two airports
