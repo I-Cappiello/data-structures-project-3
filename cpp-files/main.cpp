@@ -50,6 +50,38 @@ vector<vector<string>> readCSV(const string& filename) {
     return data;
 }
 
+
+// Helper function to check if airport is isolated because it won't work otherwise I guess
+bool isIsolatedAirport(const string& code) {
+    return (code == "HNL" || code == "ITO" || code == "OGG" ||
+            code == "ALW" || code == "EAT" || code == "YKM" ||
+            code == "BRD" || code == "BJI" ||
+            code == "BTR" || code == "AHN" || code == "MLU" ||
+            code == "SGF" || code == "ACT" ||
+            code == "GYY" || code == "MWA" ||
+            code == "BIL" || code == "BTM" || code == "HLN" ||
+            code == "GEG" || code == "GTF" || code == "MSO" ||
+            code == "PVU" || code == "FTW");
+}
+
+// Filter function
+vector<vector<string>> filterDisconnectedAirports(const vector<vector<string>>& data) {
+    vector<vector<string>> filtered_data;
+    filtered_data.push_back(data[0]);  // Keep header
+    
+    for(int i = 1; i < data.size(); i++){
+        string origin = data[i][0];
+        string dest = data[i][1];
+        
+        if(!isIsolatedAirport(origin) && !isIsolatedAirport(dest)) {
+            filtered_data.push_back(data[i]);
+        }
+    }
+    
+    return filtered_data;
+}
+
+
 int main() {
     // Stores csv data as well as its size
     auto data = readCSV("airports.txt");
@@ -58,6 +90,7 @@ int main() {
         cout << "No data loaded.\n";
         return 0;
     }
+    data = filterDisconnectedAirports(data);  
     int numRows = data.size();
     int numCol = data[0].size();
     Graph g;
@@ -81,5 +114,8 @@ int main() {
     g_u.shortestPathsToState();
     g_u.shortestPathWithStops();
     g.display_flight_connections();
+    g_u.check_connectivity();
+    g_u.prim_mst();
+    g_u.Kruskal_MST();
     return 0;
 }
