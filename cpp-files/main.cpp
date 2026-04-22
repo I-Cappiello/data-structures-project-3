@@ -80,6 +80,6 @@ int main() {
     g_u.shortestPath();
     g_u.shortestPathsToState();
     g_u.shortestPathWithStops();
-    
+    g.display_flight_connections();
     return 0;
 }
