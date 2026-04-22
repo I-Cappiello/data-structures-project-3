@@ -309,6 +309,54 @@ void Graph::shortestPathWithStops(int src, int dest, int maxStops) {
         cout << ". The length is " << bestDist << ". The cost is " << finalCost << "." << endl;
     }
 }
+
+//for part 5
+void Graph::display_flight_connections() {
+    struct AirportConnections {
+        string name;
+        int inbound;
+        int outbound;
+        int total;
+    };
+    
+    vector<AirportConnections> airport_data;
+    
+    for (int i = 0; i < vertices.size(); i++) {
+        AirportConnections ac;
+        ac.name = vertices[i].getData();
+        ac.outbound = edges[i].size();
+        
+        ac.inbound = 0;
+        for (int j = 0; j < vertices.size(); j++) {
+            for (int k = 0; k < edges[j].size(); k++) {
+                if (edges[j][k].dest == i) {
+                    ac.inbound++;
+                }
+            }
+        }
+        
+        ac.total = ac.inbound + ac.outbound;
+        airport_data.push_back(ac);
+    }
+    
+// bubble sort by total count
+for (int i = 0; i < airport_data.size() - 1; i++) {
+    for (int j = 0; j < airport_data.size() - i - 1; j++) {
+        if (airport_data[j].total < airport_data[j + 1].total) {
+            AirportConnections temp = airport_data[j];
+            airport_data[j] = airport_data[j + 1];
+            airport_data[j + 1] = temp;
+        }
+    }
+}
+    cout << "Airport Flight Connections:\n";
+    for (const auto& ac : airport_data) {
+        cout << ac.name << ": " << ac.total <<" connections"
+             << " (inbound: " << ac.inbound 
+             << ", outbound: " << ac.outbound << ")" << endl;
+    }
+}
+
 // The below functions are commented out for my own sanity.
 /*
 void Graph::DFS(Vertex& ver) {
