@@ -24,6 +24,8 @@ public:
 
     void shortestPathWithStops(int src, int dest, int maxStops);
 
+    void display_flight_connection();
+
     //void DFS(Vertex& ver);
     //void BFS(Vertex& ver);
 
