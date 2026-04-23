@@ -5,11 +5,11 @@
 
 using namespace std;
 const int Graph::INT_MAX;
-
+// Union-Find (Disjoint Set) data structure for Kruskal's algorithm
 class UnionFind {
     vector<int> parent;
 public:
-    UnionFind(int n) : parent(n) {
+    UnionFind(int n) : parent(n) { // Initialize each vertex to be its own parent
         for (int i = 0; i < n; i++) parent[i] = i;
     }
     
@@ -17,7 +17,7 @@ public:
         return parent[x] == x ? x : (parent[x] = find(parent[x]));
     }
     
-    bool unite(int x, int y) {
+    bool unite(int x, int y) { // Union two sets and return true if they were separate, false if they were already connected
         x = find(x); y = find(y);
         if (x == y) return false;  // Already connected
         parent[x] = y;
@@ -375,6 +375,7 @@ void Graph::shortestPathWithStops(string srcCode, string destCode, int maxStops)
     }
 }
 
+// Displays the number of direct flights to and from each airport, sorted by total connections
 void Graph::display_flight_connections() {
     struct AirportConnections {
         string name;
@@ -384,12 +385,12 @@ void Graph::display_flight_connections() {
     };
     
     vector<AirportConnections> airport_data;
-    
+    // Calculate inbound and outbound connections for each airport
     for (int i = 0; i < vertices.size(); i++) {
         AirportConnections ac;
         ac.name = vertices[i].getData();
         ac.outbound = edges[i].size();
-        
+        // Calculate inbound connections by checking all edges in the graph
         ac.inbound = 0;
         for (int j = 0; j < vertices.size(); j++) {
             for (int k = 0; k < edges[j].size(); k++) {
@@ -398,7 +399,7 @@ void Graph::display_flight_connections() {
                 }
             }
         }
-        
+        // Calculate total connections
         ac.total = ac.inbound + ac.outbound;
         airport_data.push_back(ac);
     }
@@ -421,7 +422,7 @@ for (int i = 0; i < airport_data.size() - 1; i++) {
     }
 }
 
-void Graph::prim_mst() {
+void Graph::prim_mst() { // Prim's algorithm for Minimum Spanning Tree
     int n = vertices.size();
     
     if (n == 0) {
@@ -429,14 +430,14 @@ void Graph::prim_mst() {
         return;
     }
     
-    vector<bool> in_mst(n, false);
+    vector<bool> in_mst(n, false); // Tracks which vertices are included in the MST
     
     struct MSTEdge {
         int v1;
         int v2;
         int cost;
     };
-    vector<MSTEdge> mst_edges;
+    vector<MSTEdge> mst_edges; // Stores the edges included in the MST
     
     in_mst[0] = true;
     int vertices_in_mst = 1;
@@ -448,11 +449,11 @@ void Graph::prim_mst() {
         int best_to = -1;
         
         for (int i = 0; i < n; i++) {
-            if (!in_mst[i]) continue;
+            if (!in_mst[i]) continue; // Only consider edges from vertices already in the MST
             
-            for (int j = 0; j < edges[i].size(); j++) {
+            for (int j = 0; j < edges[i].size(); j++) { // Check all edges from vertex i
                 int dest = edges[i][j].dest;
-                int cost = edges[i][j].cost;
+                int cost = edges[i][j].cost; 
                 
                 if (!in_mst[dest]) {
                     if (min_cost == -1 || cost < min_cost) {
@@ -469,7 +470,7 @@ void Graph::prim_mst() {
             return;
         }
         
-        in_mst[best_to] = true;
+        in_mst[best_to] = true; // Add the best edge's destination vertex to the MST
         vertices_in_mst++;
         total_cost += min_cost;
         
@@ -482,7 +483,7 @@ void Graph::prim_mst() {
    cout << "\nMinimal Spanning Tree:\n";
 cout << "Edge              Weight\n";
 
-for (int i = 0; i < mst_edges.size(); i++) {
+for (int i = 0; i < mst_edges.size(); i++) { // Print each edge in the MST with proper formatting
     string edge_str = vertices[mst_edges[i].v1].getData() + " - " + 
                      vertices[mst_edges[i].v2].getData();
     
@@ -497,7 +498,8 @@ for (int i = 0; i < mst_edges.size(); i++) {
 cout << "\nTotal Cost of MST: " << total_cost << "\n\n";
 }
 
-void Graph::check_connectivity() {
+//needed this function purely for debugging
+void Graph::check_connectivity() { // Checks if all vertices are reachable from the first vertex using BFS
     int n = vertices.size();
     if (n == 0) return;
     
@@ -507,15 +509,15 @@ void Graph::check_connectivity() {
     visited[0] = true;
     int reachable = 1;
     
-    int front = 0;
-    while (front < queue.size()) {
+    int front = 0; 
+    while (front < queue.size()) { // While there are still vertices to process in the queue
         int current = queue[front++];
         for (int i = 0; i < edges[current].size(); i++) {
-            int neighbor = edges[current][i].dest;
+            int neighbor = edges[current][i].dest; // Get the index of the neighboring vertex
             if (!visited[neighbor]) {
                 visited[neighbor] = true;
                 queue.push_back(neighbor);
-                reachable++;
+                reachable++; 
             }
         }
     }
@@ -526,7 +528,7 @@ void Graph::check_connectivity() {
     if (reachable == n) {
         cout << "CONNECTED\n\n";
     } else {
-        cout << "DISCONNECTED - Unreachable airports:\n";
+        cout << "DISCONNECTED - Unreachable airports:\n"; // If not all vertices are reachable, print the ones that aren't
         for (int i = 0; i < n; i++) {
             if (!visited[i]) cout << "  - " << vertices[i].getData() << "\n";
         }
@@ -534,6 +536,7 @@ void Graph::check_connectivity() {
     }
 }
 
+// Kruskal's algorithm for Minimum Spanning Tree
 void Graph::Kruskal_MST(){
     int n = vertices.size();
     if (n == 0){
@@ -543,15 +546,15 @@ void Graph::Kruskal_MST(){
     
     vector<Edge> all_edges;
     
-    for (int i = 0; i<n; i++){
+    for (int i = 0; i<n; i++){ // Gather all edges from the graph into a single vector (only one direction for undirected graph)
         for (int j = 0; j < edges[i].size(); j++){
             if (i < edges[i][j].dest){
-                all_edges.push_back(edges[i][j]);
+                all_edges.push_back(edges[i][j]); 
             }
         }
     }
     
-    for (int i = 0; i < all_edges.size() - 1; i++){
+    for (int i = 0; i < all_edges.size() - 1; i++){ // Bubble sort the edges by cost
         for (int j = 0; j < all_edges.size() - i - 1; j++){
             if (all_edges[j+1] < all_edges[j]) {
                 Edge temp = all_edges[j];
@@ -563,14 +566,14 @@ void Graph::Kruskal_MST(){
 
     
     
-    UnionFind uf(n);
+    UnionFind uf(n); // Initialize Union-Find structure for cycle detection
     vector<Edge> mst_edges;
     int total_cost = 0;
     
     for (int i = 0; i < all_edges.size(); i++){
         Edge edge = all_edges[i];
     
-            if (uf.unite(edge.src, edge.dest)) {
+            if (uf.unite(edge.src, edge.dest)) { // If the edge connects two different components, add it to the MST
             mst_edges.push_back(edge);
             total_cost += edge.cost;
         }
@@ -579,7 +582,7 @@ void Graph::Kruskal_MST(){
     cout <<"\nMinimal Spanning Tree:\n";
     cout << "Edge     Weight\n";
     
-    for (int i = 0; i < mst_edges.size(); i++) {
+    for (int i = 0; i < mst_edges.size(); i++) { // Print each edge in the MST with proper formatting
         string edge_str = vertices[mst_edges[i].src].getData() + " - " + vertices[mst_edges[i].dest].getData();
         
         while(edge_str.length() < 18){
