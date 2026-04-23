@@ -28,8 +28,6 @@ private:
     vector<vector<Edge>> edges; //connections
     
     // Helper Functions
-    void clean_visited(); // Sets all vertex's visited to false
-    void DFS_helper(Vertex& ver); // Helps with DFS
     int get_vertex_index(const Vertex& ver); // Grabs the index of a given vertex
     int find_edge(const Vertex& v1, const Vertex& v2); // Finds the inner index of an edge
     int find_state_index(vector<string> states, string state); // Finds the index of a state within a vector
